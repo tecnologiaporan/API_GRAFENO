@@ -6,7 +6,7 @@ load_dotenv()
 
 GRAFENO_API_KEY = os.getenv("GRAFENO_API_KEY")
 ACCOUNT_NUMBER = os.getenv("GRAFENO_ACCOUNT_NUMBER")
-BASE_URL = "https://pagamentos.grafeno.be/api/v2"
+BASE_URL = os.getenv("GRAFENO_BASE_API")
 
 
 def buscar_cobrancas():
@@ -24,7 +24,7 @@ def buscar_cobrancas():
     return response.json()
 
 
-def criar_charge(payload):
+def criar_pagamento_grafeno(payload):
     url = f"{BASE_URL}/charges"
 
     headers = {

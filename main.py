@@ -1,9 +1,10 @@
 from bling import bling
 from grafeno import grafeno
+from btg import btg
 import json
 
 
-def extrair_dados_bling(conta):
+def extrair_dados_bling(conta, banco):
     origem = conta.get("origem", {})
     contato_id = conta.get("contato", {}).get("id")
     pedido_id = origem.get("id")
@@ -22,12 +23,24 @@ def extrair_dados_bling(conta):
     
     qtd_parcelas = len(parcelas) // 2
 
-    valor_sem_desconto, desconto_por_parcela, tipo_desconto_grafeno = calcular_desconto_grafeno(
-        valor_parcela = valor_parcela,
-        qtd_parcelas = qtd_parcelas,
-        valor_desconto = valor_desconto,
-        tipo_desconto_bling = tipo_desconto_bling
-    )
+    if (banco == "BTG"):
+        valor_sem_desconto, desconto_por_parcela, tipo_desconto = calcular_desconto_btg(
+            valor_parcela,
+            qtd_parcelas,
+            valor_desconto,
+            tipo_desconto_bling
+        )
+    
+    elif (banco == "GRAFENO"):
+        valor_sem_desconto, desconto_por_parcela, tipo_desconto = calcular_desconto_grafeno(
+            valor_parcela,
+            qtd_parcelas,
+            valor_desconto,
+            tipo_desconto_bling
+        )
+
+    else:
+        return None
 
     dados = {
         # Dados do contas a receber
@@ -36,8 +49,8 @@ def extrair_dados_bling(conta):
         "vencimento": conta.get("vencimento"),
 
         # Dados do pedido de venda
-        "numero_pedido": f"P{origem.get('numero')}",
-        "desconto_type": tipo_desconto_grafeno,
+        "numero_pedido": f"P {origem.get('numero')}",
+        "desconto_type": tipo_desconto,
         "valor_desconto": desconto_por_parcela,
 
         # Dados do contato do pagador
@@ -66,23 +79,49 @@ def calcular_desconto_grafeno(valor_parcela, qtd_parcelas, valor_desconto, tipo_
     total_com_desconto = valor_parcela * qtd_parcelas
     
     if (tipo_desconto_bling == "REAL"):
-        tipo_desconto_grafeno = "fixed_value"
+        tipo_desconto = "fixed_value"
         desconto_total = valor_desconto
     
     elif (tipo_desconto_bling == "PERCENTUAL"):
-        tipo_desconto_grafeno = "fixed_value"
+        tipo_desconto = "fixed_value"
         total_sem_desconto_grafeno = (total_com_desconto * 100) / (100 - valor_desconto)
         total_sem_desconto_btg = (total_sem_desconto_grafeno * 40) / 60
         desconto_total = (total_sem_desconto_btg + total_sem_desconto_grafeno) * (valor_desconto / 100)
         
     else:
         desconto_total = 0
-        tipo_desconto_grafeno = "fixed_value"
+        tipo_desconto = "fixed_value"
 
     desconto_por_parcela = desconto_total * (percentual_grafeno / qtd_parcelas)
     valor_parcela_sem_desconto = valor_parcela + desconto_por_parcela
 
-    return valor_parcela_sem_desconto, desconto_por_parcela, tipo_desconto_grafeno
+    return valor_parcela_sem_desconto, desconto_por_parcela, tipo_desconto
+
+
+def calcular_desconto_btg(valor_parcela, qtd_parcelas, valor_desconto, tipo_desconto_bling, percentual_btg = 0.4):
+    if (not valor_desconto or qtd_parcelas <= 0):
+        return valor_parcela, 0, "FIXED_VALUE"
+    
+    total_com_desconto = valor_parcela * qtd_parcelas
+    
+    if (tipo_desconto_bling == "REAL"):
+        tipo_desconto = "FIXED_VALUE"
+        desconto_total = valor_desconto
+    
+    elif (tipo_desconto_bling == "PERCENTUAL"):
+        tipo_desconto = "FIXED_VALUE"
+        total_sem_desconto_grafeno = (total_com_desconto * 100) / (100 - valor_desconto)
+        total_sem_desconto_btg = (total_sem_desconto_grafeno * 60) / 40
+        desconto_total = (total_sem_desconto_btg + total_sem_desconto_grafeno) * (valor_desconto / 100)
+        
+    else:
+        desconto_total = 0
+        tipo_desconto = "FIXED_VALUE"
+
+    desconto_por_parcela = desconto_total * (percentual_btg / qtd_parcelas)
+    valor_parcela_sem_desconto = valor_parcela + desconto_por_parcela
+
+    return valor_parcela_sem_desconto, desconto_por_parcela, tipo_desconto
 
 
 def criar_cobranca_grafeno(dados):
@@ -139,6 +178,58 @@ def criar_cobranca_grafeno(dados):
     return payload
 
 
+def criar_cobranca_btg(dados):
+    payload = {
+        "type": "BANKSLIP",
+        "payer": {
+            "personType": "J",
+            "address": {
+                "city": dados["cidade"],
+                "state": dados["uf"],
+                "zipCode": dados["cep"],
+                "street": dados["rua"],
+                "number": dados["numero"],
+                "neighborhood": dados["bairro"],
+                "complement": dados["complemento"]
+            },
+            "name": dados["nome"],
+            "taxId": dados["documento"],
+            "email": "email@gmail.com",
+            "phoneNumber": dados["telefone"] or dados["celular"]
+        },
+        "interest": {
+            "startDate": dados["vencimento"],
+            "type": "PERCENTAGE_PER_MONTH",
+            "value": 1
+        },
+        "fine": {
+            "startDate": dados["vencimento"],
+            "type": "PERCENTAGE",
+            "value": 2
+        },
+        "discounts": [
+            {
+                "limitDate": dados["vencimento"],
+                "type": "FIXED_VALUE",
+                "value": dados["valor_desconto"]
+            }
+        ],
+        "account": {
+            "number": "008305304",
+            "branch": "0050"
+        },
+        "detail": {
+            "badCredit": { "type": "NOT_APPLICABLE" },
+            "documentNumber": dados["numero_pedido"]
+        },
+        "amount": dados["valor"],
+        "dueDate": dados["vencimento"],
+        "overDueDate": dados["vencimento"]
+    }
+
+    return payload
+
+
 ARQUIVO_UNICO = "boletos_payloads.txt"
 
 def salvar_dados_payload(payload):
@@ -148,21 +239,50 @@ def salvar_dados_payload(payload):
 
     print(f"Payload salvo em TXT")
 
+
+def menu():
+    print("1. Emitir Boleto BTG PACTUAL")
+    print("2. Emitir Boleto GRAFENO DIGITAL")
+    print("3. Sair do programa")
+
+    opcao = int(input("\nEscolha uma opção: "))
+
+    match (opcao):
+        case 1:
+            return "BTG"
+        
+        case 2:
+            return "GRAFENO"
+        
+        case 3:
+            return "SAIR"
+        
+        case _:
+            return None
+
         
 def main():
-    formas = bling.buscar_formas_pagamento()
+    banco = menu()
 
-    formas_grafeno_ids = set()
-
-    for forma in formas:
-        if ("GRAFENO" in forma["descricao"].upper()):
-            formas_grafeno_ids.add(forma["id"])
-
-    if (not formas_grafeno_ids):
-        print("Nenhuma forma GRAFENO encontrada...")
+    if (banco == "SAIR".upper()):
+        print("Encerrando programa...")
         return
 
+    formas = bling.buscar_formas_pagamento()
+    formas_grafeno_ids = set()
+    formas_btg_ids = set()
+
+    for forma in formas:
+        descricao_bling = forma["descricao"]
+
+        if ("GRAFENO" in descricao_bling):
+            formas_grafeno_ids.add(forma["id"])
+        
+        elif ("BTG" in descricao_bling):
+            formas_btg_ids.add(forma["id"])
+
     print(f"IDs GRAFENO detectados: {formas_grafeno_ids}")
+    print(f"IDs BTG detectados: {formas_btg_ids}")
 
     contas = bling.buscar_contas_receber()
 
@@ -170,27 +290,41 @@ def main():
 
     for conta in contas:
         forma_pag = conta.get("formaPagamento")
+        forma_id = forma_pag.get("id")
 
-        if (not forma_pag or forma_pag.get("id") not in formas_grafeno_ids):
+        if (banco == "GRAFENO" and forma_id not in formas_grafeno_ids):
+            continue
+
+        if (banco == "BTG" and forma_id not in formas_btg_ids):
             continue
         
-        dados = extrair_dados_bling(conta)
+        dados = extrair_dados_bling(conta, banco)
 
         if (not dados):
             continue
 
-        payload = criar_cobranca_grafeno(dados)
-        salvar_dados_payload(payload)
+        if (banco == "GRAFENO"):
+            payload = criar_cobranca_grafeno(dados)
 
-        try:
-            resposta = grafeno.criar_charge(payload)
-            print(f"Boleto criado com sucesso: {resposta}")
+            try:
+                resposta = grafeno.criar_pagamento_grafeno(payload)
+                print(f"Boleto criado com sucesso!")
+
+            except Exception as error:
+                print(f"Erro ao criar o boleto: {error}")
+
+        elif (banco == "BTG"):
+            payload = criar_cobranca_btg(dados)
+
+            try:
+                resposta = btg.criar_pagamento_btg(payload)
+                print("Boleto criado com sucesso!")
+
+            except Exception as error:
+                print(f"Erro ao criar o boleto: {error}")
         
-            encontrados += 1
-
-        except Exception as error:
-            print(f"Erro ao criar o boleto: {error}")
-  
+        salvar_dados_payload(payload)
+        encontrados += 1
     
     print(f"Quantidade de boletos criados: {encontrados}")
 
