@@ -56,6 +56,7 @@ def extrair_dados_bling(conta, banco):
         # Dados do contato do pagador
         "nome": contato.get("nome"),
         "documento": contato.get("numeroDocumento"),
+        "tipo_pessoa": contato.get("tipo"),
         "telefone": contato.get("telefone"),
         "celular": contato.get("celular"),
         
@@ -182,7 +183,7 @@ def criar_cobranca_btg(dados):
     payload = {
         "type": "BANKSLIP",
         "payer": {
-            "personType": "J",
+            "personType": dados["tipo_pessoa"],
             "address": {
                 "city": dados["cidade"],
                 "state": dados["uf"],
@@ -213,7 +214,8 @@ def criar_cobranca_btg(dados):
                 "type": "FIXED_VALUE",
                 "value": dados["valor_desconto"]
             }
-        ],
+
+        ] if dados["valor_desconto"] > 0 else [],
         "account": {
             "number": "008305304",
             "branch": "0050"
@@ -230,35 +232,44 @@ def criar_cobranca_btg(dados):
     return payload
 
 
-ARQUIVO_UNICO = "boletos_payloads.txt"
+ARQUIVO_UNICO = "boletos_gerados.txt"
 
 def salvar_dados_payload(payload):
-    with open(ARQUIVO_UNICO, "a", encoding = "utf-8") as f:
-        f.write(json.dumps(payload, indent = 4, ensure_ascii = False))
-        f.write("\n\n" + " = " * 80 + "\n\n")
+    try:
+        with open(ARQUIVO_UNICO, "a", encoding = "utf-8") as f:
+            f.write(json.dumps(payload, indent = 4, ensure_ascii = False))
+            f.write("\n\n" + " -=" * 50 + "\n\n")
+    
+    except (FileNotFoundError, RuntimeError) as e:
+        print(f"ERRO: {e}")
 
     print(f"Payload salvo em TXT")
 
 
 def menu():
+    print("-=" * 8, "Menu", "-=" * 8)
     print("1. Emitir Boleto BTG PACTUAL")
     print("2. Emitir Boleto GRAFENO DIGITAL")
     print("3. Sair do programa")
 
-    opcao = int(input("\nEscolha uma opção: "))
+    try:
+        opcao = int(input("\nEscolha uma opção: "))
 
-    match (opcao):
-        case 1:
-            return "BTG"
-        
-        case 2:
-            return "GRAFENO"
-        
-        case 3:
-            return "SAIR"
-        
-        case _:
-            return None
+        match (opcao):
+            case 1:
+                return "BTG"
+            
+            case 2:
+                return "GRAFENO"
+            
+            case 3:
+                return "SAIR"
+            
+            case _:
+                return None
+            
+    except (ValueError, TypeError, AttributeError, RuntimeError) as e:
+        print(f"ERRO capturado: {e}")
 
         
 def main():
