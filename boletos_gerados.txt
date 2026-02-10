@@ -1,0 +1,47 @@
+{
+    "paymentMethod": "boleto",
+    "discounts": [
+        {
+            "discountType": "fixed_value",
+            "discountUntil": "2026-02-21",
+            "discountValue": 0.6
+        }
+    ],
+    "payer": {
+        "address": {
+            "street": "AVENIDA MARGINAL WALTER RIBEIRO PORTO",
+            "neighborhood": "DISTRITO INDUSTRIAL IV",
+            "number": "1311",
+            "state": "SP",
+            "city": "Bebedouro",
+            "zipCode": "14710104",
+            "complement": ""
+        },
+        "phone": {
+            "number": "(17) 98835-5588"
+        },
+        "name": "BLGB INDUSTRIA DE COSMETICOS LTDA",
+        "documentNumber": "31988342000195",
+        "email": "email@gmail.com"
+    },
+    "boletoDetails": {
+        "registrationMethod": "online",
+        "titleType": "trade_bill",
+        "yourNumber": "P 5123",
+        "observation": "Após o vencimento, sujeito a juros de 2% mensal e multa de 1%."
+    },
+    "grantor": {
+        "name": "B.G COMERCIO E DISTRIBUICAO DE PRODUTOS COSMETICOS",
+        "documentNumber": "32871376000168"
+    },
+    "dueDate": "2026-02-21",
+    "abatementValue": 0,
+    "value": 86.66999999999999,
+    "interestType": "percentage",
+    "interestValue": 2,
+    "applicableFine": 1,
+    "expiresAfter": 60
+}
+
+ -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -= -=
+

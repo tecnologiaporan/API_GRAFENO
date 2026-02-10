@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BTG_ACCESS_TOKEN = os.getenv("BTG_ACCESS_TOKEN")
-BASE_URL = os.getenv("BTG_BASE_API")
+BASE_URL = os.getenv("BTG_BASE_URL")
 CNPJ = os.getenv("CNPJ")
 
 
@@ -19,6 +19,7 @@ def listar_contas():
     
     response = requests.get(url, headers=headers)
     response.raise_for_status()
+    
     return response.json()
 
 

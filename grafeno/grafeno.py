@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GRAFENO_API_KEY = os.getenv("GRAFENO_API_KEY")
-ACCOUNT_NUMBER = os.getenv("GRAFENO_ACCOUNT_NUMBER")
-BASE_URL = os.getenv("GRAFENO_BASE_API")
+GRAFENO_API_KEY = os.getenv("GRAFENO_API_KEY_P")
+ACCOUNT_NUMBER = os.getenv("GRAFENO_ACCOUNT_NUMBER_P")
+BASE_URL = os.getenv("GRAFENO_BASE_API_P")
 
 
 def buscar_cobrancas():

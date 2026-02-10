@@ -1,11 +1,12 @@
 import os
 import requests
+import base64
 from dotenv import load_dotenv
 
 load_dotenv()
 
 BLING_API_KEY = os.getenv("BLING_API_KEY")
-BLING_BASE_URL = "https://bling.com.br/Api/v3"
+BLING_BASE_URL = os.getenv("BLING_BASE_URL")
 
 
 def buscar_contas_receber():

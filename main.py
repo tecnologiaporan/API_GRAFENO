@@ -1,4 +1,4 @@
-from bling import bling
+from bling import renovar
 from grafeno import grafeno
 from btg import btg
 import json
@@ -9,8 +9,8 @@ def extrair_dados_bling(conta, banco):
     contato_id = conta.get("contato", {}).get("id")
     pedido_id = origem.get("id")
 
-    contato = bling.buscar_contato(contato_id)
-    pedido = bling.buscar_pedidos_venda(pedido_id)
+    contato = renovar.buscar_contato(contato_id)
+    pedido = renovar.buscar_pedidos_venda(pedido_id)
 
     parcelas = pedido.get("parcelas", [])
     desconto = pedido.get("desconto", {})
@@ -218,7 +218,7 @@ def criar_cobranca_btg(dados):
         ] if dados["valor_desconto"] > 0 else [],
         "account": {
             "number": "008305304",
-            "branch": "0050"
+            "branch": "50"
         },
         "detail": {
             "badCredit": { "type": "NOT_APPLICABLE" },
@@ -279,7 +279,7 @@ def main():
         print("Encerrando programa...")
         return
 
-    formas = bling.buscar_formas_pagamento()
+    formas = renovar.buscar_formas_pagamento()
     formas_grafeno_ids = set()
     formas_btg_ids = set()
 
@@ -292,10 +292,7 @@ def main():
         elif ("BTG" in descricao_bling):
             formas_btg_ids.add(forma["id"])
 
-    print(f"IDs GRAFENO detectados: {formas_grafeno_ids}")
-    print(f"IDs BTG detectados: {formas_btg_ids}")
-
-    contas = bling.buscar_contas_receber()
+    contas = renovar.buscar_contas_receber()
 
     encontrados = 0
 
@@ -318,7 +315,7 @@ def main():
             payload = criar_cobranca_grafeno(dados)
 
             try:
-                resposta = grafeno.criar_pagamento_grafeno(payload)
+                grafeno.criar_pagamento_grafeno(payload)
                 print(f"Boleto criado com sucesso!")
 
             except Exception as error:
@@ -328,7 +325,7 @@ def main():
             payload = criar_cobranca_btg(dados)
 
             try:
-                resposta = btg.criar_pagamento_btg(payload)
+                btg.criar_pagamento_btg(payload)
                 print("Boleto criado com sucesso!")
 
             except Exception as error:
