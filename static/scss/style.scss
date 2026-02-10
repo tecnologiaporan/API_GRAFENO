@@ -1,0 +1,84 @@
+@use "_reset" as mx;
+
+body{
+    #titulo{
+        @include mx.flexAlign(center,center,column);
+        height: 20dvh;
+
+        h1{
+            font-size: 30px;
+        }
+    }
+    .form-container{
+        height: 70dvh;
+        @include mx.flexAlign(center, center, column);
+
+        form{
+            @include mx.heightWidth(70%, 50%);
+            @include mx.flexAlign(center,flex-start,column);
+            // background-color: red;
+            // gap: 2%;
+
+            select{
+                @include mx.heightWidth(20%, 100%);
+                background-color: #ff7e00;
+                font-size: 20px;
+                padding-left: 3%;
+
+                &:hover{
+                    cursor: pointer;
+                }
+                option{
+                    background-color: #ffffff;
+                }
+            }
+            .dates{
+                @include mx.heightWidth(70%,100%);
+                @include mx.flexAlign(start,center,column);
+                // background-color: blue;
+                // border: solid 1px black;
+                // border-radius: 50%;
+                gap: 20%;
+                padding: 3%;
+
+                h1{
+                    align-self: center;
+                }
+
+                .inputs{
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+
+                    .input-date-container{
+                        width: 100%;
+                        background-color: #00000024;
+                        @include mx.flexAlign(start,flex-start,row);
+
+                        p{
+                            width: 30%;
+                        }
+                        .input-date{
+                            background-color: transparent;
+
+                            &:hover{
+                            cursor: text;
+                        }
+                        }
+
+                        
+                    }
+                }
+            }
+            #listar{
+                @include mx.heightWidth(10%,100%);
+                background-color: rgb(14, 199, 131);
+                
+                &:hover{
+                    cursor: pointer;
+                }
+            }  
+        } 
+    }
+}
+

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMISSÃO DE BOLETOS - PORAN</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/script.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <img src="../static/assets/logo.png" alt="PoranLogo" id="logo" draggable="false">
+            <a href="login.html">
+                <img src="../static/assets/icon_usuario.png" alt="Login" id="login" draggable="false">
+            </a>
+        </nav>
+    </header>
+
+    <div id="titulo">
+        <h1>EMISSÃO DE BOLETO</h1>
+    </div>
+
+    <main>
+        <div class="form-container">
+            <form method="post">
+                <select required onchange="this.options[0].style.display='none'">
+                    <option value="" disabled selected>SELECIONE UM BANCO</option>
+                    <option value="Grafeno">GRAFENO</option>
+                    <option value="btg">BTG</option>
+                </select>
+                <div class="dates">
+                    <h1>DATA DE EMISSÃO</h1>
+                    <div class="inputs">
+                        <div class="input-date-container">
+                            <p>DATA INICIAL:</p>
+                            <input type="date" class="input-date" name="data_emissao_inicial"
+                                value="{{data_emissao_inicial or ''}}" required>
+                        </div>
+                        <div class="input-date-container">
+                            <p>DATA FINAL:</p>
+                            <input type="date" class="input-date" name="data_emissao_final"
+                                value="{{data_emissao_final or ''}}" required>
+                        </div>
+                    </div>
+                </div>
+                <input type="submit" value="LISTAR" id="listar">
+            </form>
+        </div>
+
+        <div class="containerBoleto" style="display: flex; justify-content: center;">
+            {% if contas %}
+            <table class="tabela-contas">
+                <thead>
+                    <tr>
+                        <th>CLIENTE</th>
+                        <th>DOCUMENTO</th>
+                        <th>VALOR</th>
+                        <th>VENCIMENTO</th>
+                        <th>PEDIDO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# O loop abaixo cria uma linha (tr) para cada conta na lista #}
+                    {% for conta in contas %}
+                    <tr>
+                        <td>{{ conta.nome }}</td>
+                        <td>{{ conta.documento }}</td>
+                        <td>R$ {{ conta.valor }}</td>
+                        <td>{{ conta.vencimento }}</td>
+                        <td>{{ conta.numero_pedido }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; margin-top: 20px;">Nenhuma conta encontrada para o período selecionado.</p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+
+</html>

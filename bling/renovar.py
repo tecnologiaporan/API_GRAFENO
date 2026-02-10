@@ -58,14 +58,14 @@ def buscar_contas_receber():
     todas_contas = []
     pagina = 1
 
-    while pagina <= 50:
+    while (pagina <= 50):
         params = {
             "pagina": pagina,
             "limite": 100,
             "situacoes[]": [1, 3],
             "tipoFiltroData": "E",
             "dataInicial": "2026-02-09",
-            "dataFinal": "2026-02-09"
+            "dataFinal": "2026-02-09" 
         }
 
         print(f"🔄 Buscando página {pagina}...")

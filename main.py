@@ -275,7 +275,7 @@ def menu():
 def main():
     banco = menu()
 
-    if (banco == "SAIR".upper()):
+    if (banco == "SAIR"):
         print("Encerrando programa...")
         return
 
@@ -291,6 +291,9 @@ def main():
         
         elif ("BTG" in descricao_bling):
             formas_btg_ids.add(forma["id"])
+    
+    print(f"Formas GRAFENO: {formas_grafeno_ids}")
+    print(f"Formas BTG: {formas_btg_ids}")
 
     contas = renovar.buscar_contas_receber()
 
