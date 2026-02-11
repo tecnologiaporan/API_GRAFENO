@@ -14,7 +14,8 @@ def listar_contas():
     
     headers = {
         "Authorization": f"Bearer {BTG_ACCESS_TOKEN}",
-        "accept": "application/json"
+        "accept": "application/json",
+        "Content-Type": "application/json",
     }
     
     response = requests.get(url, headers=headers)
@@ -28,7 +29,8 @@ def criar_pagamento_btg(payload):
 
     headers = {
         "Authorization": f"Bearer {BTG_ACCESS_TOKEN}",
-        "accept": "application/json"
+        "accept": "application/json",
+        "Content-Type": "application/json",
     }
 
     response = requests.post(url, json = payload, headers = headers)

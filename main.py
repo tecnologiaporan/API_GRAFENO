@@ -3,6 +3,8 @@ from grafeno import grafeno
 from btg import btg
 import json
 
+PERCENTUAL_BTG = 0.40
+PERCENTUAL_GRAFENO = 0.60
 
 def extrair_dados_bling(conta, banco):
     origem = conta.get("origem", {})
@@ -10,7 +12,7 @@ def extrair_dados_bling(conta, banco):
     pedido_id = origem.get("id")
 
     contato = renovar.buscar_contato(contato_id)
-    pedido = renovar.buscar_pedidos_venda(pedido_id)
+    pedido = renovar.buscar_pedidos_venda(pedido_id)    
 
     parcelas = pedido.get("parcelas", [])
     desconto = pedido.get("desconto", {})
@@ -21,26 +23,15 @@ def extrair_dados_bling(conta, banco):
     valor_desconto = desconto.get("valor")
     tipo_desconto_bling = desconto.get("unidade")
     
-    qtd_parcelas = len(parcelas) // 2
+    qtd_parcelas = len(parcelas)
 
-    if (banco == "BTG"):
-        valor_sem_desconto, desconto_por_parcela, tipo_desconto = calcular_desconto_btg(
-            valor_parcela,
-            qtd_parcelas,
-            valor_desconto,
-            tipo_desconto_bling
-        )
-    
-    elif (banco == "GRAFENO"):
-        valor_sem_desconto, desconto_por_parcela, tipo_desconto = calcular_desconto_grafeno(
-            valor_parcela,
-            qtd_parcelas,
-            valor_desconto,
-            tipo_desconto_bling
-        )
-
-    else:
-        return None
+    valor_sem_desconto, desconto_final = calcular_desconto(
+        valor_parcela,
+        qtd_parcelas,
+        valor_desconto,
+        tipo_desconto_bling,
+        banco
+    )
 
     dados = {
         # Dados do contas a receber
@@ -50,8 +41,8 @@ def extrair_dados_bling(conta, banco):
 
         # Dados do pedido de venda
         "numero_pedido": f"P {origem.get('numero')}",
-        "desconto_type": tipo_desconto,
-        "valor_desconto": desconto_por_parcela,
+        # "desconto_type": tipo_desconto,
+        "valor_desconto": desconto_final,
 
         # Dados do contato do pagador
         "nome": contato.get("nome"),
@@ -59,6 +50,7 @@ def extrair_dados_bling(conta, banco):
         "tipo_pessoa": contato.get("tipo"),
         "telefone": contato.get("telefone"),
         "celular": contato.get("celular"),
+        "email": contato.get("email") or contato.get("emailNotaFiscal") or "financeiro@porancosmeticos.com.br",
         
         # Dados do endereço do pagador
         "rua": endereco.get("endereco"),
@@ -73,56 +65,31 @@ def extrair_dados_bling(conta, banco):
     return dados
 
 
-def calcular_desconto_grafeno(valor_parcela, qtd_parcelas, valor_desconto, tipo_desconto_bling, percentual_grafeno = 0.6):
-    if (not valor_desconto or qtd_parcelas <= 0):
-        return valor_parcela, 0, "fixed_value"
+def calcular_desconto(valor_parcela_bling, qtd_parcelas, valor_desconto_bling, tipo_desconto_bling, banco):
+    if (banco == "GRAFENO"):
+        percentual = PERCENTUAL_GRAFENO
     
-    total_com_desconto = valor_parcela * qtd_parcelas
-    
-    if (tipo_desconto_bling == "REAL"):
-        tipo_desconto = "fixed_value"
-        desconto_total = valor_desconto
-    
-    elif (tipo_desconto_bling == "PERCENTUAL"):
-        tipo_desconto = "fixed_value"
-        total_sem_desconto_grafeno = (total_com_desconto * 100) / (100 - valor_desconto)
-        total_sem_desconto_btg = (total_sem_desconto_grafeno * 40) / 60
-        desconto_total = (total_sem_desconto_btg + total_sem_desconto_grafeno) * (valor_desconto / 100)
-        
     else:
-        desconto_total = 0
-        tipo_desconto = "fixed_value"
+        percentual = PERCENTUAL_BTG
 
-    desconto_por_parcela = desconto_total * (percentual_grafeno / qtd_parcelas)
-    valor_parcela_sem_desconto = valor_parcela + desconto_por_parcela
+    if (not valor_desconto_bling or valor_desconto_bling <= 0):
+        return (valor_parcela_bling * percentual), 0
 
-    return valor_parcela_sem_desconto, desconto_por_parcela, tipo_desconto
-
-
-def calcular_desconto_btg(valor_parcela, qtd_parcelas, valor_desconto, tipo_desconto_bling, percentual_btg = 0.4):
-    if (not valor_desconto or qtd_parcelas <= 0):
-        return valor_parcela, 0, "FIXED_VALUE"
-    
-    total_com_desconto = valor_parcela * qtd_parcelas
-    
-    if (tipo_desconto_bling == "REAL"):
-        tipo_desconto = "FIXED_VALUE"
-        desconto_total = valor_desconto
-    
-    elif (tipo_desconto_bling == "PERCENTUAL"):
-        tipo_desconto = "FIXED_VALUE"
-        total_sem_desconto_grafeno = (total_com_desconto * 100) / (100 - valor_desconto)
-        total_sem_desconto_btg = (total_sem_desconto_grafeno * 60) / 40
-        desconto_total = (total_sem_desconto_btg + total_sem_desconto_grafeno) * (valor_desconto / 100)
+    if (tipo_desconto_bling == "PERCENTUAL"):
+        fator_desconto = valor_desconto_bling / 100
+        valor_por_parcela_com_desconto = valor_parcela_bling * percentual
         
-    else:
-        desconto_total = 0
-        tipo_desconto = "FIXED_VALUE"
+        valor_por_parcela_sem_desconto = valor_por_parcela_com_desconto / (1 - fator_desconto)
+        valor_desconto_por_parcela = valor_por_parcela_sem_desconto - valor_por_parcela_com_desconto
 
-    desconto_por_parcela = desconto_total * (percentual_btg / qtd_parcelas)
-    valor_parcela_sem_desconto = valor_parcela + desconto_por_parcela
+    elif (tipo_desconto_bling == "REAL"):
+        desconto_por_parcela = valor_desconto_bling / qtd_parcelas
+        valor_desconto_por_parcela = desconto_por_parcela * percentual
+        
+        valor_por_parcela_com_desconto = valor_parcela_bling * percentual
+        valor_por_parcela_sem_desconto = valor_por_parcela_com_desconto + valor_desconto_por_parcela
 
-    return valor_parcela_sem_desconto, desconto_por_parcela, tipo_desconto
+    return valor_por_parcela_sem_desconto, valor_desconto_por_parcela
 
 
 def criar_cobranca_grafeno(dados):
@@ -130,10 +97,11 @@ def criar_cobranca_grafeno(dados):
         "paymentMethod": "boleto",
         "discounts": [
             {
-                "discountType": dados["desconto_type"],
+                "discountType": "fixed_value",
                 "discountUntil": dados["vencimento"],
                 "discountValue": dados["valor_desconto"]
         }
+
     ] if dados["valor_desconto"] > 0 else [],
 
         "payer": {
@@ -152,7 +120,7 @@ def criar_cobranca_grafeno(dados):
             },
             "name": dados["nome"],
             "documentNumber": dados["documento"],
-            "email": "email@gmail.com"
+            "email": dados["email"]
         },
 
         "boletoDetails": {
@@ -195,7 +163,7 @@ def criar_cobranca_btg(dados):
             },
             "name": dados["nome"],
             "taxId": dados["documento"],
-            "email": "email@gmail.com",
+            "email": dados["email"],
             "phoneNumber": dados["telefone"] or dados["celular"]
         },
         "interest": {
@@ -216,6 +184,7 @@ def criar_cobranca_btg(dados):
             }
 
         ] if dados["valor_desconto"] > 0 else [],
+
         "account": {
             "number": "008305304",
             "branch": "50"
@@ -280,65 +249,83 @@ def main():
         return
 
     formas = renovar.buscar_formas_pagamento()
-    formas_grafeno_ids = set()
-    formas_btg_ids = set()
+    formas_ids = set()
 
     for forma in formas:
         descricao_bling = forma["descricao"]
 
-        if ("GRAFENO" in descricao_bling):
-            formas_grafeno_ids.add(forma["id"])
-        
-        elif ("BTG" in descricao_bling):
-            formas_btg_ids.add(forma["id"])
+        if ("Boleto" in descricao_bling):
+            formas_ids.add(forma["id"])
     
-    print(f"Formas GRAFENO: {formas_grafeno_ids}")
-    print(f"Formas BTG: {formas_btg_ids}")
+    print(f"Formas encontradas = {formas_ids}")
 
     contas = renovar.buscar_contas_receber()
+    contas_processar = []
+
+    for conta in contas:
+        forma_id = conta.get("formaPagamento", {}).get("id")
+
+        if (forma_id in formas_ids):
+            contas_processar.append(conta)
+
+    if (not contas_processar):
+        print("Nenhuma conta com forma de pagamento 'Boleto' encontrada.")
+        return
+    
+    print("\n" + "="*70)
+    print(f"{'CONFERÊNCIA DE CONTAS - DESTINO: ' + banco:^70}")
+    print("="*70)
+    print(f"{'CLIENTE':<35} | {'VENCIMENTO':<12} | {'VALOR (TOTAL)':<12}")
+    print("-" * 70)
+
+    total_soma = 0
+
+    for c in contas_processar:
+        nome = c.get("contato", {}).get("nome")[:33]
+        vencimento = c.get("vencimento")
+        valor =  c.get("valor")
+
+        total_soma += valor
+
+        print(f"{nome:<35} | {vencimento:<12} | R$ {valor:>10.2f}")
+
+    print("-" * 70)
+    print(f"TOTAL: {len(contas_processar)} contas | SOMA: R$ {total_soma:.2f}")
+    
+    confirmar = str(input(f"\nDeseja gerar os boletos de {banco} para estas contas? (S/N): ").upper())
+    
+    if (confirmar != "S"):
+        print("Operação cancelada pelo usuário.")
+        return
 
     encontrados = 0
 
-    for conta in contas:
-        forma_pag = conta.get("formaPagamento")
-        forma_id = forma_pag.get("id")
-
-        if (banco == "GRAFENO" and forma_id not in formas_grafeno_ids):
-            continue
-
-        if (banco == "BTG" and forma_id not in formas_btg_ids):
-            continue
+    for conta in contas_processar:
+        print(f"Processando: {conta.get('contato', {}).get('nome')}...")
         
         dados = extrair_dados_bling(conta, banco)
 
         if (not dados):
             continue
 
-        if (banco == "GRAFENO"):
-            payload = criar_cobranca_grafeno(dados)
-
-            try:
+        try:
+            if (banco == "GRAFENO"):
+                payload = criar_cobranca_grafeno(dados)
                 grafeno.criar_pagamento_grafeno(payload)
-                print(f"Boleto criado com sucesso!")
-
-            except Exception as error:
-                print(f"Erro ao criar o boleto: {error}")
-
-        elif (banco == "BTG"):
-            payload = criar_cobranca_btg(dados)
-
-            try:
+                print(" -> Boleto Grafeno criado!")
+            
+            elif (banco == "BTG"):
+                payload = criar_cobranca_btg(dados)
                 btg.criar_pagamento_btg(payload)
-                print("Boleto criado com sucesso!")
+                print(" -> Boleto BTG criado!")
 
-            except Exception as error:
-                print(f"Erro ao criar o boleto: {error}")
-        
-        salvar_dados_payload(payload)
-        encontrados += 1
-    
-    print(f"Quantidade de boletos criados: {encontrados}")
+            salvar_dados_payload(payload)
+            encontrados += 1
 
+        except Exception as error:
+            print(f" -> Erro ao criar o boleto: {error}")
+
+    print(f"\nSucesso: {encontrados} boletos criados.")
 
 if (__name__ == "__main__"):
     main()

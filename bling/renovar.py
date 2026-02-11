@@ -64,8 +64,8 @@ def buscar_contas_receber():
             "limite": 100,
             "situacoes[]": [1, 3],
             "tipoFiltroData": "E",
-            "dataInicial": "2026-02-09",
-            "dataFinal": "2026-02-09" 
+            "dataInicial": "2026-02-10",
+            "dataFinal": "2026-02-10" 
         }
 
         print(f"🔄 Buscando página {pagina}...")
