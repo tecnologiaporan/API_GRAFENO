@@ -85,13 +85,13 @@ def emitir_boletos():
     if (not messagebox.askyesno("Confirmar", f"Deseja gerar {len(selecionados)} boletos para o {banco}?")):
         return
 
-    status_label.configure(text = "Processando...", text_color = "yellow")
+    status_label.configure(text = "Processando...", text_color = "yellow", font = ("Arial", 14, "bold"))
     tela.update_idletasks() 
 
     sucessos, falhas = interface_logica.processar_boletos(selecionados, banco)
     
     messagebox.showinfo("Concluído", f"Emissão finalizada!\nSucessos: {sucessos}\nFalhas: {falhas}")
-    status_label.configure(text = "Emissão concluída.", text_color = "green")
+    status_label.configure(text = "Emissão concluída.", text_color = "green", font = ("Arial", 14, "bold"))
     
     atualizar_listagem()
 

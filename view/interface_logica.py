@@ -1,6 +1,6 @@
 from datetime import datetime
 from tkinter import messagebox
-from services.bling import bling_v2, bling_v1
+from services.bling import bling_v1, bling_v2, bling_v3
 from services.btg import btg
 from services.grafeno import grafeno
 from core import geradores 
