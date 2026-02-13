@@ -88,7 +88,7 @@ def emitir_boletos():
     status_label.configure(text = "Processando...", text_color = "yellow")
     tela.update_idletasks() 
 
-    sucessos, falhas = interface_logica.processar_boletos(selecionados, None, banco)
+    sucessos, falhas = interface_logica.processar_boletos(selecionados, banco)
     
     messagebox.showinfo("Concluído", f"Emissão finalizada!\nSucessos: {sucessos}\nFalhas: {falhas}")
     status_label.configure(text = "Emissão concluída.", text_color = "green")
@@ -107,7 +107,6 @@ tela = CTk()
 tela.geometry("1000x700")
 tela.title("Sistema Emissor de Boletos")
 tela.resizable(False, False)
-tela.iconbitmap("./assets/img.ico")
 
 main_frame = CTkFrame(tela, fg_color = "black") 
 main_frame.pack(fill = "both", expand = True, padx = 20, pady = 20)
@@ -141,7 +140,6 @@ header_frame.pack(fill = "x", padx = 20, pady = (10, 0))
 selecionar_todos_check_box = CTkCheckBox(header_frame, text = "Selecionar", variable = selecionar_todos_var, width = 50, command = toggle_selecionar_todos)
 selecionar_todos_check_box.grid(row = 0, column = 0, padx = (10, 10))
 
-# CTkLabel(header_frame, text="Selecionar", width = 100, anchor = "w").grid(row = 0, column = 0, padx = (10, 20))
 CTkLabel(header_frame, text="Cliente", width = 200, anchor="w").grid(row = 0, column = 1, padx = 5)
 CTkLabel(header_frame, text="CNPJ/CPF", width = 150, anchor = "w").grid(row = 0, column = 2, padx = 5)
 CTkLabel(header_frame, text="Forma de Pagamento", width = 150, anchor = "w").grid(row = 0, column = 3, padx = 5)

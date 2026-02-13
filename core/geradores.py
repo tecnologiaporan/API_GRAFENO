@@ -5,7 +5,7 @@ def criar_cobranca_grafeno(dados):
             {
                 "discountType": "fixed_value",
                 "discountUntil": dados["vencimento"],
-                "discountValue": dados["valor_desconto"]
+                "discountValue": float(dados["valor_desconto"])
         }
 
     ] if dados["valor_desconto"] > 0 else [],
@@ -43,7 +43,7 @@ def criar_cobranca_grafeno(dados):
 
         "dueDate": dados["vencimento"],
         "abatementValue": 0,
-        "value": dados["valor"],
+        "value": float(dados["valor"]),
         "interestType": "percentage",
         "interestValue": 2,
         "applicableFine": 1,
@@ -92,14 +92,14 @@ def criar_cobranca_btg(dados):
         ] if dados["valor_desconto"] > 0 else [],
 
         "account": {
-            "number": "008305304",
-            "branch": "50"
+            "number": "3333333333",
+            "branch": "1"
         },
         "detail": {
             "badCredit": { "type": "NOT_APPLICABLE" },
             "documentNumber": dados["numero_pedido"]
         },
-        "amount": dados["valor"],
+        "amount": float(dados["valor"]),
         "dueDate": dados["vencimento"],
         "overDueDate": dados["vencimento"]
     }

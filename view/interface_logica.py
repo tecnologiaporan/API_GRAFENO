@@ -1,10 +1,11 @@
 from datetime import datetime
 from tkinter import messagebox
-from services.bling import bling_v2
+from services.bling import bling_v2, bling_v1
 from services.btg import btg
 from services.grafeno import grafeno
 from core import geradores 
 import log
+import time
 
 
 def buscar_dados_bling(data_inicial = None, data_final = None):
@@ -12,11 +13,11 @@ def buscar_dados_bling(data_inicial = None, data_final = None):
         data_inicial = datetime.strptime(data_inicial, "%d/%m/%Y").strftime("%Y-%m-%d")
         data_final = datetime.strptime(data_final, "%d/%m/%Y").strftime("%Y-%m-%d")
 
-    except (Exception) as e:
+    except Exception as e:
         return None, f"ERRO no formato da data {e}"
     
-    contas = bling_v2.buscar_contas_receber(data_inicial, data_final)
-    formas = bling_v2.buscar_formas_pagamento()
+    contas = bling_v1.buscar_contas_receber(data_inicial, data_final)
+    formas = bling_v1.buscar_formas_pagamento()
 
     formas_pag = {}
 
@@ -38,13 +39,13 @@ def buscar_dados_bling(data_inicial = None, data_final = None):
     return contas_filtradas, "Sucesso"
 
 
-def processar_boletos(selecionados_indices, selecionados, banco):
+def processar_boletos(lista_contas, banco):
     sucessos = 0
     falhas = 0
 
-    for conta_obj in selecionados_indices:
+    for conta_obj in lista_contas:
         try:
-            dados = bling_v2.extrair_dados_bling(conta_obj, banco)
+            dados = bling_v1.extrair_dados_bling(conta_obj, banco)
 
             if (banco == "GRAFENO"):
                 payload = geradores.criar_cobranca_grafeno(dados)

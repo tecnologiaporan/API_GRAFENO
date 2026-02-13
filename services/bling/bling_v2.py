@@ -33,7 +33,6 @@ def renovar_token():
     _access_token_cache = data["access_token"]
     BLING_REFRESH_TOKEN = data["refresh_token"]
 
-    # Salva o novo refresh_token no .env automaticamente
     set_key(ENVIAR_PATH, "BLING_REFRESH_TOKEN", BLING_REFRESH_TOKEN)
 
 
@@ -134,7 +133,7 @@ def extrair_dados_bling(conta, banco):
         "valor_desconto": desconto_final,
         "nome": contato.get("nome"),
         "documento": contato.get("numeroDocumento"),
-        "tipo_pessoa": contato.get("tipo"),
+        "tipo_pessoa": contato.get("tipo").upper(),
         "telefone": contato.get("telefone"),
         "celular": contato.get("celular"),
         "email": contato.get("email") or EMAIL_PADRAO,

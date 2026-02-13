@@ -6,11 +6,11 @@ load_dotenv()
 
 BTG_ACCESS_TOKEN = os.getenv("BTG_ACCESS_TOKEN")
 BASE_URL = os.getenv("BTG_BASE_URL")
-CNPJ = os.getenv("CNPJ")
+BTG_CNPJ = os.getenv("BTG_CNPJ")
 
 
 def listar_contas():
-    url = f"{BASE_URL}/{CNPJ}/banking/accounts"
+    url = f"{BASE_URL}/{BTG_CNPJ}/banking/accounts"
     
     headers = {
         "Authorization": f"Bearer {BTG_ACCESS_TOKEN}",
@@ -25,7 +25,7 @@ def listar_contas():
 
 
 def criar_pagamento_btg(payload):
-    url = f"{BASE_URL}/{CNPJ}/banking/collections"
+    url = f"{BASE_URL}/{BTG_CNPJ}/banking/collections"
 
     headers = {
         "Authorization": f"Bearer {BTG_ACCESS_TOKEN}",
@@ -35,5 +35,5 @@ def criar_pagamento_btg(payload):
 
     response = requests.post(url, json = payload, headers = headers)
     response.raise_for_status()
-
+    
     return response.json()
