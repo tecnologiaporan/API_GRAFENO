@@ -2,7 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv, set_key
 from config import EMAIL_PADRAO
-from calculos import calcular_desconto
+from core import calculos
 
 load_dotenv()
 
@@ -66,8 +66,8 @@ def buscar_contas_receber(data_inicial = None, data_final = None):
             "limite": 100,
             "situacoes[]": [1, 3],
             "tipoFiltroData": "E",
-            "dataInicial": "2026-02-11",
-            "dataFinal": "2026-02-11" 
+            "dataInicial": data_inicial,
+            "dataFinal": data_final 
         }
 
         print(f"🔄 Buscando página {pagina}...")
@@ -112,16 +112,16 @@ def extrair_dados_bling(conta, banco):
     
     endereco = contato.get("endereco", {}).get("geral", {})
 
-    valor_parcela = conta.get("valor")
-    valor_desconto = desconto.get("valor")
+    valor_parcela = conta.get("valor" or 0)
+    total_desconto = desconto.get("valor" or 0)
     tipo_desconto_bling = desconto.get("unidade")
     
     qtd_parcelas = len(parcelas)
 
-    valor_sem_desconto, desconto_final = calcular_desconto(
+    valor_sem_desconto, desconto_final = calculos.calcular_desconto(
         valor_parcela,
         qtd_parcelas,
-        valor_desconto,
+        total_desconto,
         tipo_desconto_bling,
         banco
     )

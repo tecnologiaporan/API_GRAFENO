@@ -1,10 +1,11 @@
 from config import PERCENTUAL_BTG, PERCENTUAL_GRAFENO
 
+
 def calcular_desconto(valor_parcela_bling, qtd_parcelas, valor_desconto_bling, tipo_desconto_bling, banco):
     if (banco == "GRAFENO"):
         percentual = PERCENTUAL_GRAFENO
     
-    else:
+    elif (banco == "BTG"):
         percentual = PERCENTUAL_BTG
 
     if (not valor_desconto_bling or valor_desconto_bling <= 0):
